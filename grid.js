@@ -68,21 +68,26 @@ function Grid() {
 
     this.combine = function(dir, rev = false) {
         for (let i = 0; i < 4; i++) {
-            var arr = this.slice(i, dir, rev);
             var tiles = new Array();
+            var arr = this.slice(i, dir, rev);
             for (let j = 0; j < 4; j++) {
                 if (arr[j].v != 0) {
                     tiles.push(arr[j]);
-		}
-            }
-
-            for (let k = 0; k < tiles.length - 2; k++) {
-                if (tiles[k].v == tiles[k + 1].v) {
-		    console.log(tiles[k]);
-		    tiles[k].v = 0;
-		    tiles[k+1].combine();
                 }
             }
+
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i].v == tiles[i + 1].v) {
+                    console.log(tiles[i]);
+                    tiles[i].v = 0;
+                    tiles[i + 1].combine();
+                }
+            }
+
+            for (let i = 1; i < arr.length - 1; i++)
+                if (arr[i].v == 0)
+                    arr[i].v = arr[i - 1].v;
+
         }
     };
 }

@@ -1,0 +1,6 @@
+function grid() {
+    return new Array(
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]);
+}

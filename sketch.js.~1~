@@ -1,0 +1,7 @@
+function setup() {
+	 console.table(grid());
+}
+
+function draw() {
+    
+}

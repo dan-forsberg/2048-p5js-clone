@@ -1,5 +1,7 @@
 var HORIZONTAL = 0;
 var VERTICAL = 1;
+var H = 0;
+var V = 1;
 
 function Grid() {
 
@@ -17,18 +19,6 @@ function Grid() {
             });
         }
     }
-
-    this.print = function() {
-        console.log("-------------------------");
-        for (let i = 0; i < 4; i++) {
-            var line = "|  ";
-            for (let j = 0; j < 4; j++)
-                line += this.tile(j, i).v + "  |  ";
-            console.log(line);
-            console.log("-------------------------");
-        }
-
-    };
 
     this.tile = function(x, y) {
         return this.grid[x + y * 4];
@@ -66,28 +56,56 @@ function Grid() {
         return !rev ? arr : arr.reverse();
     };
 
+    /*
+     * Works: 0 2 2 0 -> 0 0 0 4 (hor and vert)
+     * 
+     */
     this.combine = function(dir, rev = false) {
         for (let i = 0; i < 4; i++) {
             var tiles = new Array();
+            var empty = new Array();
             var arr = this.slice(i, dir, rev);
-            for (let j = 0; j < 4; j++) {
-                if (arr[j].v != 0) {
-                    tiles.push(arr[j]);
-                }
+
+            for (let i = 0; i < 4; i++) {
+                if (arr[i].v != 0)
+                    tiles.push(arr[i]);
+                else
+                    empty.push(arr[i]);
             }
 
             for (let i = 0; i < tiles.length - 1; i++) {
                 if (tiles[i].v == tiles[i + 1].v) {
-                    console.log(tiles[i]);
-                    tiles[i].v = 0;
-                    tiles[i + 1].combine();
+                    tiles[i].combine();
+                    let spot = empty[0];
+                    if ((dir == HORIZONTAL && ((!rev && tiles[i].x == 0) || (rev && tiles[i].x == 3))) ||
+                        (dir == VERTICAL && ((rev && tiles[i].y == 0) || (!rev && tiles[i].y == 3)))) {
+                        spot = tiles[i];
+                        console.log("YES dir: " + dir + " x: " + tiles[i].x + " y: " + tiles[i].y);
+                    } else {
+                        console.log("dir: " + dir + " x: " + tiles[i].x + " y: " + tiles[i].y);
+                    }
+
+                    let v = tiles[i].v;
+                    tiles[i].v = tiles[i + 1].v = 0;
+                    spot.v = v;
                 }
             }
+        }
+    };
 
-            for (let i = 1; i < arr.length - 1; i++)
-                if (arr[i].v == 0)
-                    arr[i].v = arr[i - 1].v;
+    this.set = function(x, y, v) {
+        this.tile(x, y).v = v;
+    };
 
+    this.test = function(dir) {
+        for (let x = 0; x < 4 * 4; x++)
+            this.grid[x].v = 0;
+        if (dir == HORIZONTAL) {
+            this.tile(0, 0).v = 2;
+            this.tile(1, 0).v = 2;
+        } else {
+            this.tile(0, 0).v = 2;
+            this.tile(0, 1).v = 2;
         }
     };
 }

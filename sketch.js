@@ -1,12 +1,12 @@
-var grid;
+var game;
 var w = 100;
 c = console.table;
 
 function setup() {
     createCanvas(401, 401);
-    grid = new Grid();
-    grid.newTile();
-    grid.newTile();
+    game = new Game();
+    // grid.newTile();
+    // grid.newTile();
 
     noFill();
     strokeWeight(2);
@@ -22,7 +22,7 @@ function draw() {
         for (let y = 0; y < 4; y++) {
             rect(x * w, y * w, w, w, 0);
 
-            let txt = grid.tile(x, y).v.toString();
+            let txt = game.tile(x, y).v.toString();
             if (txt === "0")
                 continue;
 	    text(txt, x * w + w / 2, y * w + w / 2);

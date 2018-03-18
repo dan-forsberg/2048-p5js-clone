@@ -3,8 +3,7 @@ var VERTICAL = 1;
 var H = 0;
 var V = 1;
 
-function Grid() {
-
+function Game() {
     this.grid = new Array();
 
     for (let y = 0; y < 4; y++) {
@@ -19,32 +18,35 @@ function Grid() {
             });
         }
     }
+};
 
-    this.tile = function(x, y) {
+Game.prototype = {
+    tile: function(x, y) {
         return this.grid[x + y * 4];
-    };
+    },
 
     /*
      * Set an empty tile to either a 2 or 4 (75% chance for 2)
      * Ignore count
      */
-    this.newTile = function(count = 0) {
-        if (count == 4 * 4)
-            return -1;
+    newTile: function() {
+        let empty_tiles = new Array();
+        for (let i = 0; i < 4 * 4; i++)
+            if (game.grid[i].v == 0)
+                empty_tiles.push(game.grid[i]);
 
-        var tile = floor(random(4 * 4));
-        if (this.grid[tile].v !== 0)
-            return this.newTile(++count);
-        else
-            return this.grid[tile].v = floor(random() * 4) < 3 ? 2 : 4;
-    };
+        let r = floor(random(empty_tiles.length));
+        let tile = empty_tiles[r];
+        tile.v = (random(0, 4) < 3 ? 2 : 4);
+        return tile;
+    },
 
     /* 
      * Get an array of references to tiles in either a row or column
-     * to get the 3rd row: grid.slice(2, HORIZONTAL)
-     * to get the last column in reverse: grid.slice(3, VERTICAL, true)
+     * to get the 3rd row: game.slice(2, HORIZONTAL)
+     * to get the last column in reverse: game.slice(3, VERTICAL, true)
      */
-    this.slice = function(i, dir, rev = false) {
+    slice: function(i, dir, rev = false) {
         let arr = new Array();
         if (dir == VERTICAL) {
             for (let y = 0; y < 4; y++)
@@ -54,58 +56,64 @@ function Grid() {
                 arr.push(this.tile(x, i));
         }
         return !rev ? arr : arr.reverse();
-    };
+    },
 
     /*
-     * Works: 0 2 2 0 -> 0 0 0 4 (hor and vert)
+     * Works:
+     * 0 2 2 0 -> 0 0 0 4 (hor and vert)
+     * 0 2 0 2 -> 4 0 0 0
+     * 2 2 0 0 -> 4 0 0 0
      * 
      */
-    this.combine = function(dir, rev = false) {
+    combine: function(dir, rev = false) {
         for (let i = 0; i < 4; i++) {
+            /*
+             * Get the relevant row/col ("slice")
+             * Make new arrays, one for empty and one for non-empty tiles in that slice
+             *
+             * Go through non-empty tiles, check if n and n+1 are equal
+             *   check if n or n+1 is at the edge, then save into $tile
+             *   if not at the edge, take the suitable $empty spot
+             *
+             * Combine them, and 0 the correct tile
+             */
+            var arr = this.slice(i, dir, rev);
             var tiles = new Array();
             var empty = new Array();
-            var arr = this.slice(i, dir, rev);
+
+            /* shift some tiles to the right position
+             * in case of (0, x, y, z) -> (x, y, z, 0) it works
+             */
+            for (let i = 0; i < 3; i++) {
+                if (arr[i].v == 0) {
+                    arr[i].v = arr[i + 1].v;
+                    arr[i + 1].v = 0;
+                }
+            }
 
             for (let i = 0; i < 4; i++) {
                 if (arr[i].v != 0)
                     tiles.push(arr[i]);
-                else
-                    empty.push(arr[i]);
             }
 
             for (let i = 0; i < tiles.length - 1; i++) {
+        
                 if (tiles[i].v == tiles[i + 1].v) {
-                    tiles[i].combine();
-                    let spot = empty[0];
-                    if ((dir == HORIZONTAL && ((!rev && tiles[i].x == 0) || (rev && tiles[i].x == 3))) ||
-                        (dir == VERTICAL && ((rev && tiles[i].y == 0) || (!rev && tiles[i].y == 3)))) {
-                        spot = tiles[i];
-                        console.log("YES dir: " + dir + " x: " + tiles[i].x + " y: " + tiles[i].y);
-                    } else {
-                        console.log("dir: " + dir + " x: " + tiles[i].x + " y: " + tiles[i].y);
-                    }
-
-                    let v = tiles[i].v;
+                    let v = tiles[i].v * 2;
                     tiles[i].v = tiles[i + 1].v = 0;
-                    spot.v = v;
+                    for (let i = 0; i < 3; i++) {
+                        if (arr[i].v == 0) {
+                            arr[i].v = v;
+                            break;
+                        }
+                    }
                 }
             }
         }
-    };
+    },
 
-    this.set = function(x, y, v) {
+    set: function(x, y, v) {
         this.tile(x, y).v = v;
-    };
+    }
 
-    this.test = function(dir) {
-        for (let x = 0; x < 4 * 4; x++)
-            this.grid[x].v = 0;
-        if (dir == HORIZONTAL) {
-            this.tile(0, 0).v = 2;
-            this.tile(1, 0).v = 2;
-        } else {
-            this.tile(0, 0).v = 2;
-            this.tile(0, 1).v = 2;
-        }
-    };
-}
+};
